@@ -9,8 +9,8 @@ SNS="http://www.w3.org/2000/svg";
 var Settings = {
     MinNbOfPoints: 1,
     MaxNbOfPoints: 3,
-    BoxH: 20,
-    BoxW: 20,
+    BoxH: 8,
+    BoxW: 8,
     GridH: 4,
     GridW: 4,
 };
@@ -48,7 +48,7 @@ Grid.GridPoint.prototype.toPoint = function() {
 }
 
 Grid.GridPoint.prototype.toString = function() {
-    return this.i + " " + this.j;
+    return "GridPoint:" + this.i + "," + this.j;
 }
 
 Grid.Grid.prototype.getNewRandomPoint = function(noRewrite) {
@@ -98,16 +98,23 @@ Svg.Point.prototype.toString = function() {
     return this.x+","+this.y;
 }
 
+Svg.Point.prototype.toDraw = function(ox, oy) {
+    return (this.x+ox)+","+(this.y+oy);
+}
+
 Svg.QuadraticPoint.prototype.toString = function() {
     return this.type+this.a+" "+this.b;
 }
 
+Svg.QuadraticPoint.prototype.toDraw = function(ox, oy) {
+    return this.type+this.a.toDraw(ox,oy)+" "+this.b.toDraw(ox,oy);
+}
 
 // Symbol ----------------------
 var Symbol = {
     Symbol: function() {
         this.grid = new Grid.Grid(Settings.GridH, Settings.GridW);
-        this.points = [];
+        this.points = [this.getNewEdgePoint()];
         var nbOfPoints = Symbol.getRandomNbPoint();
         for (var i=0; i<nbOfPoints; ++i) {
             var point = this.getNewPoint();
@@ -132,16 +139,77 @@ Symbol.Symbol.prototype.getNewCurvePoint = function() {
     return this.grid.getNewRandomPoint(true).toPoint();
 }
 
-Symbol.Symbol.prototype.toPath = function(x, y) {
+Symbol.Symbol.prototype.toDraw = function(ox, oy) {
     if (this.points.length == 0) { throw "No points"; }
-    return "M"+new Svg.Point(x,y)+" "+this.points.join(" ");
+    var drawStr = "M";
+    for (var i = 0; i<this.points.length; ++i) {
+        var point = this.points[i];
+        drawStr += point.toDraw(ox,oy)+" ";
+    }
+    return drawStr;
 }
 
-function test() {
-    var board = document.getElementById("board");
-    var new_path = document.createElementNS(SNS, "path");
-    new_path.setAttributeNS(null, "d", new Symbol.Symbol().toPath(0,0));
-    board.appendChild(new_path);
-    console.log(new_path.getBoundingClientRect().width);
+// Alphabet ----------------------
+var Alphabet = {
+    Alphabet: function() {
+        this.mapping = {};
+        for (var i=0; i<base.length; ++i) {
+            var c = base.charAt(i);
+            this.mapping[c] = new Symbol.Symbol();
+        }
+    }
+}
 
+Alphabet.Alphabet.prototype.toDraw = function(text) {
+    for (var c in text) {
+
+    }
+}
+
+var UI = {
+    drawSymbol: function(symb, x, y) {
+        var board = document.getElementById("board");
+        var new_path = document.createElementNS(SNS, "path");
+        new_path.setAttributeNS(null, "d", symb.toDraw(x, y));
+        board.appendChild(new_path);
+        //console.log(new_path.getBoundingClientRect().width);
+    },
+
+    drawAlphabet: function(alpha, text) {
+        var x = 0;
+        var y = 0;
+        var width = document.getElementById("board").getAttribute("width");
+        if (!text) { text = base; }
+        for (var i=0; i<text.length; ++i) {
+            var c = text.charAt(i).toLowerCase();
+            UI.drawSymbol(alpha.mapping[c], x, y);
+            x += Settings.BoxW * (Settings.GridW - 1);
+            if (x > width) {
+                x = 0;
+                y += Settings.BoxH * Settings.GridH;
+            }
+        }
+    },
+
+    clearPaths: function() {
+        var node = document.getElementById("board");
+        while (node.firstChild) {
+            node.removeChild(node.firstChild);
+        }
+    }
+}
+
+base = "abcdefghijklmnopqrstuvwxyz ";
+alpha = new Alphabet.Alphabet();
+function setup() {
+    inputChanged();
+    document.getElementById("input").addEventListener("input", function(evt) {
+        input = document.getElementById("input").value;
+        inputChanged(input);
+    }, false);
+}
+
+function inputChanged(input) {
+    UI.clearPaths();
+    UI.drawAlphabet(alpha, input);
 }
