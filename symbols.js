@@ -183,7 +183,7 @@ var UI = {
         for (var i=0; i<text.length; ++i) {
             var c = text.charAt(i).toLowerCase();
             UI.drawSymbol(alpha.mapping[c], x, y);
-            x += Settings.BoxW * (Settings.GridW - 1);
+            x += Settings.BoxW * Settings.GridW;
             if (x > width) {
                 x = 0;
                 y += Settings.BoxH * Settings.GridH;
