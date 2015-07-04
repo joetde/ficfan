@@ -9,11 +9,21 @@ SNS="http://www.w3.org/2000/svg";
 var Settings = {
     MinNbOfPoints: 1,
     MaxNbOfPoints: 3,
-    BoxH: 8,
-    BoxW: 8,
-    GridH: 4,
-    GridW: 4,
+    BoxH: 12,
+    BoxW: 12,
+    GridH: 3,
+    GridW: 3,
+    ErrorPrecision: 6,
 };
+
+// Helper ----------------------
+var Helper = {
+
+    intRand: function(max) {
+        return Math.floor(Math.random()*max);
+    },
+
+}
 
 // Grid ----------------------
 var Grid = {
@@ -28,10 +38,6 @@ var Grid = {
                 this.grid[i][j] = false;
             }
         }
-    },
-
-    intRand: function(max) {
-        return Math.floor(Math.random()*max);
     },
 
     GridPoint: function(i, j) {
@@ -54,8 +60,8 @@ Grid.GridPoint.prototype.toString = function() {
 Grid.Grid.prototype.getNewRandomPoint = function(noRewrite) {
     if (noRewrite) { this.preconditionGridIsNotFull(); }
     while (true) {
-        var i = Grid.intRand(this.h);
-        var j = Grid.intRand(this.w);
+        var i = Helper.intRand(this.h);
+        var j = Helper.intRand(this.w);
         if (noRewrite) {
             if (!this.grid[i][j]) {
                 this.grid[i][j] = true;
@@ -107,7 +113,7 @@ Svg.QuadraticPoint.prototype.toString = function() {
 }
 
 Svg.QuadraticPoint.prototype.toDraw = function(ox, oy) {
-    return this.type+this.a.toDraw(ox,oy)+" "+this.b.toDraw(ox,oy);
+    return this.type+this.a.toDraw(ox,oy)+" "+this.b.toDraw(ox+Helper.intRand(Settings.ErrorPrecision),oy+Helper.intRand(Settings.ErrorPrecision));
 }
 
 // Symbol ----------------------
@@ -136,7 +142,7 @@ Symbol.Symbol.prototype.getNewEdgePoint = function() {
 }
 
 Symbol.Symbol.prototype.getNewCurvePoint = function() {
-    return this.grid.getNewRandomPoint(true).toPoint();
+    return this.grid.getNewRandomPoint(false).toPoint();
 }
 
 Symbol.Symbol.prototype.toDraw = function(ox, oy) {
@@ -172,7 +178,7 @@ var UI = {
         var new_path = document.createElementNS(SNS, "path");
         new_path.setAttributeNS(null, "d", symb.toDraw(x, y));
         board.appendChild(new_path);
-        //console.log(new_path.getBoundingClientRect().width);
+        return new_path.getBoundingClientRect();
     },
 
     drawAlphabet: function(alpha, text) {
@@ -182,9 +188,9 @@ var UI = {
         if (!text) { text = base; }
         for (var i=0; i<text.length; ++i) {
             var c = text.charAt(i).toLowerCase();
-            UI.drawSymbol(alpha.mapping[c], x, y);
-            x += Settings.BoxW * Settings.GridW;
-            if (x > width) {
+            var symbolBoundingBox = UI.drawSymbol(alpha.mapping[c], x, y);
+            x += symbolBoundingBox.width;
+            if (x + Settings.BoxW * Settings.GridW > width) {
                 x = 0;
                 y += Settings.BoxH * Settings.GridH;
             }
