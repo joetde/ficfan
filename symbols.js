@@ -172,6 +172,7 @@ Alphabet.Alphabet.prototype.toDraw = function(text) {
     }
 }
 
+// UI ----------------------
 var UI = {
     drawSymbol: function(symb, x, y) {
         var board = document.getElementById("board");
@@ -188,8 +189,13 @@ var UI = {
         if (!text) { text = base; }
         for (var i=0; i<text.length; ++i) {
             var c = text.charAt(i).toLowerCase();
+            if (c == '\n') {
+                x = 0;
+                y += Settings.BoxH * Settings.GridH;
+                continue;
+            }
             var symbolBoundingBox = UI.drawSymbol(alpha.mapping[c], x, y);
-            x += symbolBoundingBox.width;
+            x += symbolBoundingBox.width + Settings.BoxW / 4;
             if (x + Settings.BoxW * Settings.GridW > width) {
                 x = 0;
                 y += Settings.BoxH * Settings.GridH;
@@ -205,7 +211,10 @@ var UI = {
     }
 }
 
-base = "abcdefghijklmnopqrstuvwxyz ";
+// Todo other algo to generate ponctuation
+// Space should be a special character
+// Support of utf8
+base = "abcdefghijklmnopqrstuvwxyz0123456789 -+=/*'\"?!.,;:";
 alpha = new Alphabet.Alphabet();
 function setup() {
     inputChanged();
