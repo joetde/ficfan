@@ -158,17 +158,18 @@ Symbol.Symbol.prototype.toDraw = function(ox, oy) {
 // Alphabet ----------------------
 var Alphabet = {
     Alphabet: function() {
-        this.mapping = {};
-        for (var i=0; i<base.length; ++i) {
-            var c = base.charAt(i);
-            this.mapping[c] = new Symbol.Symbol();
+        this.symb_mapping = {};
+        this.speak_mapping = {};
+        for (var i=0; i<symb_base.length; ++i) {
+            var c = symb_base.charAt(i);
+            this.symb_mapping[c] = new Symbol.Symbol();
         }
-    }
-}
-
-Alphabet.Alphabet.prototype.toDraw = function(text) {
-    for (var c in text) {
-
+        for (var i=0; i<speak_base.length; ++i) {
+            var c = speak_base.charAt(i);
+            var new_char = speak_base.charAt(Helper.intRand(speak_base.length));
+            if (speak_consonants.indexOf(new_char) !== -1) { new_char += speak_voyels.charAt(Helper.intRand(speak_voyels.length)); }
+            this.speak_mapping[c] = new_char;
+        }
     }
 }
 
@@ -186,7 +187,7 @@ var UI = {
         var x = 0;
         var y = 0;
         var width = document.getElementById("board").getAttribute("width");
-        if (!text) { text = base; }
+        if (!text) { text = symb_base; }
         for (var i=0; i<text.length; ++i) {
             var c = text.charAt(i).toLowerCase();
             if (c == '\n') {
@@ -194,7 +195,7 @@ var UI = {
                 y += Settings.BoxH * Settings.GridH;
                 continue;
             }
-            var symbolBoundingBox = UI.drawSymbol(alpha.mapping[c], x, y);
+            var symbolBoundingBox = UI.drawSymbol(alpha.symb_mapping[c], x, y);
             x += symbolBoundingBox.width + Settings.BoxW / 4;
             if (x + Settings.BoxW * Settings.GridW > width) {
                 x = 0;
@@ -211,10 +212,33 @@ var UI = {
     }
 }
 
+function inputChanged(input) {
+    UI.clearPaths();
+    UI.drawAlphabet(alpha, input);
+}
+
+function read() {
+    input = document.getElementById("input").value;
+    speak_string = "";
+    for (var i=0; i<input.length; ++i) {
+        var c = input.charAt(i);
+        if (c.toLowerCase() in alpha.speak_mapping) {
+            c = alpha.speak_mapping[c.toLowerCase()];
+        }
+        speak_string += c;
+    }
+    console.log(speak_string);
+    var msg = new SpeechSynthesisUtterance(speak_string);
+    window.speechSynthesis.speak(msg);
+}
+
 // Todo other algo to generate ponctuation
 // Space should be a special character
 // Support of utf8
-base = "abcdefghijklmnopqrstuvwxyz0123456789 -+=/*'\"?!.,;:";
+symb_base = "abcdefghijklmnopqrstuvwxyz0123456789 -+=/*'\"?!.,;:";
+speak_base = "abcdefghijklmnopqrstuvwxyz";
+speak_consonants = "bcdfghjklmnpqrstvwxz";
+speak_voyels = "aeiouy";
 alpha = new Alphabet.Alphabet();
 function setup() {
     inputChanged();
@@ -222,9 +246,4 @@ function setup() {
         input = document.getElementById("input").value;
         inputChanged(input);
     }, false);
-}
-
-function inputChanged(input) {
-    UI.clearPaths();
-    UI.drawAlphabet(alpha, input);
 }
