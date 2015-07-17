@@ -2,8 +2,19 @@
 // Disclaimer, I hate js, don't expect to find good code here
 // Also, that a good excuse to do ugly code, yoohoo!
 
+// Todo other algo to generate ponctuation
+// Space should be a special character
+// Support of utf8
+
+// Globals
+var symb_base = "abcdefghijklmnopqrstuvwxyz0123456789 -+=/*'\"?!.,;:";
+var speak_base = "abcdefghijklmnopqrstuvwxyz";
+var speak_consonants = "bcdfghjklmnpqrstvwxz";
+var speak_voyels = "aeiouy";
+var alpha = new Alphabet.Alphabet();
+
 // I don't understand what I am doiiiiiiing!
-SNS="http://www.w3.org/2000/svg";
+var SNS="http://www.w3.org/2000/svg";
 
 // Settings
 var Settings = {
@@ -23,7 +34,7 @@ var Helper = {
         return Math.floor(Math.random()*max);
     },
 
-}
+};
 
 // Grid ----------------------
 var Grid = {
@@ -51,11 +62,11 @@ var Grid = {
 Grid.GridPoint.prototype.toPoint = function() {
     return new Svg.Point((2*this.j+1) * (Settings.BoxW/2),
                      (2*this.i+1) * (Settings.BoxH/2));
-}
+};
 
 Grid.GridPoint.prototype.toString = function() {
     return "GridPoint:" + this.i + "," + this.j;
-}
+};
 
 Grid.Grid.prototype.getNewRandomPoint = function(noRewrite) {
     if (noRewrite) { this.preconditionGridIsNotFull(); }
@@ -73,7 +84,7 @@ Grid.Grid.prototype.getNewRandomPoint = function(noRewrite) {
             return new Grid.GridPoint(i,j);
         }
     }
-}
+};
 
 Grid.Grid.prototype.preconditionGridIsNotFull = function() {
     for (var i=0; i<this.h; ++i) {
@@ -82,8 +93,7 @@ Grid.Grid.prototype.preconditionGridIsNotFull = function() {
         }
     }
     throw "Grid is full, cannot go on";
-}
-
+};
 
 // Svg ----------------------
 var Svg = {
@@ -97,24 +107,24 @@ var Svg = {
         this.b = b;
         this.type = type || "q";
     },
-}
+};
 
 // And now I'm gonna puke
 Svg.Point.prototype.toString = function() {
     return this.x+","+this.y;
-}
+};
 
 Svg.Point.prototype.toDraw = function(ox, oy) {
     return (this.x+ox)+","+(this.y+oy);
-}
+};
 
 Svg.QuadraticPoint.prototype.toString = function() {
     return this.type+this.a+" "+this.b;
-}
+};
 
 Svg.QuadraticPoint.prototype.toDraw = function(ox, oy) {
     return this.type+this.a.toDraw(ox,oy)+" "+this.b.toDraw(ox+Helper.intRand(Settings.ErrorPrecision),oy+Helper.intRand(Settings.ErrorPrecision));
-}
+};
 
 // Symbol ----------------------
 var Symbol = {
@@ -131,29 +141,29 @@ var Symbol = {
     getRandomNbPoint: function() {
         return Math.random()*(Settings.MaxNbOfPoints - Settings.MinNbOfPoints) + Settings.MinNbOfPoints;
     },
-}
+};
 
 Symbol.Symbol.prototype.getNewPoint = function() {
     return new Svg.QuadraticPoint(this.getNewCurvePoint(), this.getNewEdgePoint(), "Q");
-}
+};
 
 Symbol.Symbol.prototype.getNewEdgePoint = function() {
     return this.grid.getNewRandomPoint(true).toPoint();
-}
+};
 
 Symbol.Symbol.prototype.getNewCurvePoint = function() {
     return this.grid.getNewRandomPoint(false).toPoint();
-}
+};
 
 Symbol.Symbol.prototype.toDraw = function(ox, oy) {
-    if (this.points.length == 0) { throw "No points"; }
+    if (this.points.length === 0) { throw "No points"; }
     var drawStr = "M";
     for (var i = 0; i<this.points.length; ++i) {
         var point = this.points[i];
         drawStr += point.toDraw(ox,oy)+" ";
     }
     return drawStr;
-}
+};
 
 // Alphabet ----------------------
 var Alphabet = {
@@ -171,7 +181,7 @@ var Alphabet = {
             this.speak_mapping[c] = new_char;
         }
     }
-}
+};
 
 // UI ----------------------
 var UI = {
@@ -190,7 +200,7 @@ var UI = {
         if (!text) { text = symb_base; }
         for (var i=0; i<text.length; ++i) {
             var c = text.charAt(i).toLowerCase();
-            if (c == '\n') {
+            if (c === '\n') {
                 x = 0;
                 y += Settings.BoxH * Settings.GridH;
                 continue;
@@ -210,7 +220,7 @@ var UI = {
             node.removeChild(node.firstChild);
         }
     }
-}
+};
 
 function inputChanged(input) {
     UI.clearPaths();
@@ -218,8 +228,8 @@ function inputChanged(input) {
 }
 
 function read() {
-    input = document.getElementById("input").value;
-    speak_string = "";
+    var input = document.getElementById("input").value;
+    var speak_string = "";
     for (var i=0; i<input.length; ++i) {
         var c = input.charAt(i);
         if (c.toLowerCase() in alpha.speak_mapping) {
@@ -232,18 +242,10 @@ function read() {
     window.speechSynthesis.speak(msg);
 }
 
-// Todo other algo to generate ponctuation
-// Space should be a special character
-// Support of utf8
-symb_base = "abcdefghijklmnopqrstuvwxyz0123456789 -+=/*'\"?!.,;:";
-speak_base = "abcdefghijklmnopqrstuvwxyz";
-speak_consonants = "bcdfghjklmnpqrstvwxz";
-speak_voyels = "aeiouy";
-alpha = new Alphabet.Alphabet();
 function setup() {
     inputChanged();
     document.getElementById("input").addEventListener("input", function(evt) {
-        input = document.getElementById("input").value;
+        var input = document.getElementById("input").value;
         inputChanged(input);
     }, false);
 }
