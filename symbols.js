@@ -11,7 +11,6 @@ var symb_base = "abcdefghijklmnopqrstuvwxyz0123456789 -+=/*'\"?!.,;:";
 var speak_base = "abcdefghijklmnopqrstuvwxyz";
 var speak_consonants = "bcdfghjklmnpqrstvwxz";
 var speak_voyels = "aeiouy";
-var alpha = new Alphabet.Alphabet();
 
 // I don't understand what I am doiiiiiiing!
 var SNS="http://www.w3.org/2000/svg";
@@ -182,6 +181,8 @@ var Alphabet = {
         }
     }
 };
+
+var alpha = new Alphabet.Alphabet();
 
 // UI ----------------------
 var UI = {
